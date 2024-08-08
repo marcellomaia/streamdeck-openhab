@@ -17,11 +17,15 @@ class OpenHAB {
         $SD.on(`${PluginConstants.action_switch}.willDisappear`, this._willDisappear.bind(this) );
         $SD.onDidReceiveSettings( PluginConstants.action_switch, this._onDidReceiveSettings.bind(this) );
         $SD.onDeviceDidDisconnect( this._onDeviceDidDisconnect.bind(this) );
-        $SD.onConnected( () => {
-            $SD.getGlobalSettings();
-        });
+        $SD.onSystemDidWakeUp
+        $SD
+        $SD.onConnected( this._onConnected.bind(this) );
 
         $SD.on(`${PluginConstants.action_switch}.sendToPlugin`, this._sentToPlugin.bind(this) );
+    }
+
+    _onConnected = () => {
+        $SD.getGlobalSettings();
     }
 
     _sentToPlugin = (data) => {
