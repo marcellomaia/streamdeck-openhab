@@ -1,8 +1,0 @@
-{
-    "Description": "Interfaces with OpenHAB.", 
-    "Name": "OPENHAB", 
-    "com.elgato.openhab-maia.switch": {
-      "Name": "Switch", 
-      "Tooltip": "Toggles an OPENHAB Switch Item."
-    }
-  }
