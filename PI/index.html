@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
+  <meta name=apple-mobile-web-app-capable content=yes>
+  <meta name=apple-mobile-web-app-status-bar-style content=black>
+  <title>com.elgato.openhab-maia.switch PI</title>
+  <link rel="stylesheet" href="../libs/css/sdpi.css">
+
+  <style>
+    /* COLOR/BRIGHTNESS sliders */
+    /* overwrite styles of color and greyscale sliders to fit your needs */
+    /* input[type="range"].colorbrightness::-webkit-slider-runnable-track, 
+    input[type="range"].colortemperature::-webkit-slider-runnable-track,
+    input[type="range"]::-webkit-slider-runnable-track {
+            background-image: linear-gradient(to right, #94d0ec, blue)
+        } */
+
+    .sdpi-item {
+      -webkit-user-drag: element;
+    }
+
+    .spacer {
+      width: 100%;
+      height: 400px;
+    }
+
+    .sdpi-item[type='range'] {
+      align-items: center;
+    }
+
+    .teste-succeeded {
+        color: green;
+    }
+
+    .teste-failed {
+        color: red;
+    }
+
+    .notvisible {
+        visibility: hidden;
+    }
+</style>
+
+</head>
+
+<body>
+  <div class="sdpi-wrapper">
+    <div type="tabs" class="sdpi-item">
+      <div class="sdpi-item-label empty"></div>
+      <div class="tabs">
+        <div class="tab selected" data-target="#tab2" title="OPENHAB" id="teb-item">Item Link</div>
+        <div class="tab" data-target="#tab1" title="Item" id="tab-openhab">OpenHAB Settings</div>
+      </div>
+    </div>
+    <hr class="tab-separator" />
+    <div id="tab1" class="tab-container">
+      <div class="sdpi-item" id="openhab_hostname" title="OpenHAB Url">
+        <div class="sdpi-item-label">OpenHAB Url</div>
+        <input class="sdpi-item-value" onchange="changedHostname()" id="openhab_url" value="" placeholder="e.g. http://openhab:8080" required pattern="[hH][tT][tT][pP][sS]?:\/\/(\w+|(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}))((:\d+\/?$)|$|\/?$)">
+      </div>
+
+      <div class="sdpi-item" id="api_key">
+        <div class="sdpi-item-label">API Key</div>
+        <input id="apikey" class="sdpi-item-value" onchange="changedAPIKey()" value="" placeholder="Enter your API Key">
+      </div>
+
+      <div class="sdpi-item">
+        <div class="sdpi-item-label empty"></div>
+        <button class="sdpi-item-value" id="btn_testConn" onclick="testConnection()">Test Connection</button>
+      </div>
+
+      <div class="sdpi-item">
+        <div class="sdpi-item-label empty"></div>
+        <div class="sdpi-item-value" style="text-align: end;" id="teste_results"></div>
+      </div>
+    </div>
+    <div id="tab2">
+      <div class="sdpi-heading">OpenHAB Item to Link</div>
+      <div class="sdpi-item" id="item_name">
+        <div class="sdpi-item-label" required>Name</div>
+        <input class="sdpi-item-value" onchange="changed()" type="text" id="itemname" value="" required>
+      </div>
+      <div class="sdpi-item">
+        <div class="sdpi-item-label empty"></div>
+        <button class="sdpi-item-value" onclick="fetchItems()" >Load Switches</button>
+      </div>
+      <div type="list" class="sdpi-item list" id="item-list-group">
+        <div class="sdpi-item-label empty"></div>
+        <select class="sdpi-item-value select" id="itemsList" onchange="onSwitchSelected()"></select>
+        <!-- <ul class="sdpi-item-value no-select" style="overflow-x: hidden;" id="switchList">
+        </ul> -->
+      </div>
+      <div class="sdpi-item">
+        <div class="sdpi-item-label empty"></div>
+        <div class="sdpi-item-value teste-failed" style="text-align: end;" id="missingConfig">Missing OpnHAB settings!</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../libs/js/constants.js"></script>
+  <script src="../shared/constants.js"></script>
+  <script src="../libs/js/prototypes.js"></script>
+  <script src="../libs/js/timers.js"></script>
+  <script src="../libs/js/events.js"></script>
+  <script src="../libs/js/api.js"></script>
+  <script src="../libs/js/property-inspector.js"></script>
+  <script src="../libs/js/dynamic-styles.js"></script>
+  <script src="./js/main.js"></script>
+
+</body>
+
+</html>
