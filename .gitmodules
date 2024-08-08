@@ -1,0 +1,6 @@
+[submodule "src/my.domain.plugin-name/libs"]
+	path = src/my.domain.plugin-name/libs
+	url = https://github.com/elgatosf/streamdeck-javascript-sdk
+[submodule "libs"]
+	path = libs
+	url = https://github.com/elgatosf/streamdeck-javascript-sdk

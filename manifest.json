@@ -1,0 +1,48 @@
+{
+    "Actions": [
+      {
+        "Icon": "plugin/images/actions/power",
+        "Name": "Switch",
+        "States": [
+          {
+            "Image": "plugin/images/icons/off",
+            "Name": "Off"
+          },
+          {
+            "Image": "plugin/images/icons/on",
+            "Name": "On"
+          }
+        ],
+        "Tooltip": "Turn a switch on or off.",
+        "DisableAutomaticStates": true,
+        "UUID": "com.elgato.openhab-maia.switch"
+      }
+    ],
+    "SDKVersion": 2,
+    "Author": "Marcello Maia",
+    "CodePath": "plugin/index.html",
+    "PropertyInspectorPath": "PI/index.html",
+    "Description": "Control your OPENHAB Switches",
+    "Name": "OPENHAB",
+    "Icon": "plugin/plugin",
+    "Category": "OPENHAB",
+    "CategoryIcon": "plugin/images/oh",
+    "Version": "1.0.0",
+    "DefaultWindowSize": [
+      500,
+      650
+    ],
+    "OS": [
+      {
+        "Platform": "mac",
+        "MinimumVersion": "10.11"
+      },
+      {
+        "Platform": "windows",
+        "MinimumVersion": "10"
+      }
+    ],
+    "Software": {
+      "MinimumVersion": "5.0"
+    }
+  }
