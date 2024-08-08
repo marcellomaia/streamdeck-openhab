@@ -1,4 +1,4 @@
-/// <reference path="./stream-deck.js">
+/// <reference path="../../libs/js/stream-deck.js">
 /// <reference path="../../shared/constants.js">
 
 const _refreshTimeout = 10;
@@ -10,10 +10,6 @@ class OpenHAB {
     _visibleItems = [];
     _timer = null;
 
-    _itemToggleQueue = [];
-
-    
-
     constructor() {
         $SD.onDidReceiveGlobalSettings(  this.configure.bind(this) );
         $SD.on(`${PluginConstants.action_switch}.keyUp`, this._okKeyUp.bind(this) );
@@ -23,7 +19,7 @@ class OpenHAB {
         $SD.onDeviceDidDisconnect( this._onDeviceDidDisconnect.bind(this) );
         $SD.onConnected( () => {
             $SD.getGlobalSettings();
-        })
+        });
 
         $SD.on(`${PluginConstants.action_switch}.sendToPlugin`, this._sentToPlugin.bind(this) );
     }
@@ -67,9 +63,7 @@ class OpenHAB {
             if (this._openhabConfigOK) {
                 this.toggle(itemName);
             } else {
-                if (!this._itemToggleQueue.includes(itemName)) {
-                    this._itemToggleQueue.push(itemName);
-                }
+                $SD.showAlert(data['context']);
             }
         }
     }
@@ -103,20 +97,49 @@ class OpenHAB {
         return Promise.resolve([]);
     }
 
+    setOffline = async () => {
+        const image = await this.getOfflineImage();
+
+        if (image) {
+            this._visibleItems.forEach( (i) => {
+                $SD.setImage(i['context'], image);
+            });
+        }
+    }
+
+    getOfflineImage = async () => {
+        return fetch('./images/icons/offline.png')
+        .then(response => response.blob())
+        .then(blob => new Promise((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onloadend = () => resolve(reader.result)
+          reader.onerror = reject
+          reader.readAsDataURL(blob)
+        }))
+        .catch( (err) => {
+            return undefined;
+        });
+    }
+
+    setOnline = () => {
+        this._visibleItems.forEach( (i) => {
+            $SD.setImage(i['context']);
+        });
+    };
+
     configure = (data) => {
         const settings = data['payload']['settings'];
         this.apiKey = settings[PluginConstants.openhab_apikey];
         this.url = settings[PluginConstants.openhab_url];
         if (this._running) {
             this.stopPooling();
-            this.startPooling();
         }
-        if (this._openhabConfigOK && this._visibleItems.length > 0 && !this._running) {
-            this.startPooling();
-        }
-        if (this._openhabConfigOK && this._itemToggleQueue.length > 0) {
-            while(this._itemToggleQueue.length > 0) {
-                this.toggle(this._itemToggleQueue.pop());
+        if (this._visibleItems.length > 0) {
+            if (this._openhabConfigOK ) {
+                this.setOnline();
+                this.startPooling();
+            } else {
+                this.setOffline();
             }
         }
     }
@@ -147,28 +170,37 @@ class OpenHAB {
     _onDeviceDidDisconnect = (data) => {
         this.stopPooling();
         this._visibleItems = [];
-        this.this._itemToggleQueue = [];
     }
 
 
     _getUpdates = async (firstRun = false) => {
-        const list = this._buildItemList();
-        for(let i=0; i < list.length; i++) {
-            const state = await this._getState(list[i].itemname);
-            for(let idx = 0; idx < list[i].items.length; idx++) {
-                const context = list[i].items[idx]['context'];
-                const oldState = list[i].items[idx]['state'];
-                if ( oldState === undefined || oldState != state ) {
-                    this.setItemState(context, state);
-                    list[i].items[idx]['state'] = state;
-                    if (!firstRun) {
-                        console.warn(`stale item status... have ${oldState} got ${state} re-starting websocket connection!`);
-                        this._connectEventSource();
+        if (this._openhabConfigOK) {
+            const list = this._buildItemList();
+            for(let i=0; i < list.length; i++) {
+                if (list[i].itemname) {
+                    const state = await this._getState(list[i].itemname);
+                    for(let idx = 0; idx < list[i].items.length; idx++) {
+                        const context = list[i].items[idx]['context'];
+                        if ( state === undefined ) {
+                            const offlineImage = this.getOfflineImage();
+                            $SD.setImage(context, offlineImage);
+                        } else {
+                            const oldState = list[i].items[idx]['state'];
+                            if ( oldState === undefined || oldState != state ) {
+                                this.setItemState(context, state);
+                                list[i].items[idx]['state'] = state;
+                                if (!firstRun) {
+                                    console.warn(`stale item (name: ${list[i].itemname}) status... have ${oldState} got ${state} re-starting websocket connection!`);
+                                    this._connectEventSource();
+                                }
+                            }
+                        }
                     }
                 }
             }
+        } else {
+            console.warn("should not be running...");
         }
-        //this._timer = setTimeout( this._getUpdates.bind(this), _refreshTimeout * 1000);        
     }
 
     _onDidReceiveSettings = (data) => {
@@ -182,7 +214,7 @@ class OpenHAB {
         return !!this.url && !!this.apiKey;
     }
 
-    _willAppear = (data) => {
+    _willAppear = async (data) => {
         $SD.setState(data['context'], 0);
         if (data && data['action'] === PluginConstants.action_switch ) {
             let newInstance = new Object();
@@ -190,11 +222,16 @@ class OpenHAB {
             const settings = newInstance['payload']['settings'];
             newInstance['state'] = undefined;
             this._visibleItems.push(newInstance);
+            const image = await this.getOfflineImage();
+            if (image) {
+                $SD.setImage(newInstance['context'], image);
+            }
             if (this._openhabConfigOK) {
                 if (settings[PluginConstants.itemName]) {
                     return this._getState(settings[PluginConstants.itemName]).then( (state) => {
                         newInstance['state'] = state;
-                        this.setItemState(data['context'], state);
+                        $SD.setImage(newInstance['context']);
+                        this.setItemState(newInstance['context'], state);
                     }).finally( () => {
                         if (!this._running) {
                             this.startPooling();
